@@ -1,10 +1,10 @@
 # sql_conn
-======
 
 A sql_conn is a plugin for connecting Flutter Android application to SQL Server.
 
 This library aims to provide an easy to use interface to SQL Server.
 
+#### The plugin is still in development and there might be some bugs
 
 ## Platform Support
 
@@ -13,7 +13,6 @@ This library aims to provide an easy to use interface to SQL Server.
 |   ✔️    | ❌️  |
 
 ## Usage
------
 
 Connect to the database
 
@@ -53,7 +52,7 @@ To check if application is connected to database
  print(SqlConn.isConnected);
 ```
 
-### The plugin is still in development and there might be some bugs
-
-### 🐛 Bugs/Requests
-    If you encounter any problems feel free to open an issue. If you feel the library is missing a feature, please raise a ticket on Github and I'll look into it. Pull request are also welcome.
+### Bugs/Requests
+    If you encounter any problems feel free to open an issue.
+    If you feel the library is missing a feature, please raise a ticket on Github.
+    Pull request are also welcome.
