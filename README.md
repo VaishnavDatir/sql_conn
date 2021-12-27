@@ -3,14 +3,15 @@
 A sql_conn is a plugin for connecting Flutter Android application to SQL Server.
 
 This library aims to provide an easy to use interface to SQL Server.
+Easily read data from SQL Database. Perform CURD as well as many other operation on database using this plugin.
 
-#### The plugin is still in development and there might be some bugs
+##### The plugin is still in development and there might be some bugs
 
 ## Platform Support
 
 | Android | iOS |
 | :-----: | :-: |
-|   ✔️    | ❌️  |
+|   ✔️    | ❌️ |
 
 ## Usage
 
@@ -28,14 +29,15 @@ await SqlConn.connect(
 Execute a query with parameters:
 
 To read data from database
+
 ```dart
 var res = await SqlConn.readData("SELECT * FROM tableName");
     print(res.toString());
-    // results are in json format
+    // results are in list in json format
 ```
 
-
 To edit database (Queries such as Insert, Delete)
+
 ```dart
  var res = await SqlConn.writeData(query);
     print(res.toString());
@@ -43,16 +45,19 @@ To edit database (Queries such as Insert, Delete)
 ```
 
 Disconnect from database
+
 ```dart
  SqlConn.disconnect();
 ```
 
 To check if application is connected to database
+
 ```dart
  print(SqlConn.isConnected);
 ```
 
 ### Bugs/Requests
+
     If you encounter any problems feel free to open an issue.
     If you feel the library is missing a feature, please raise a ticket on Github.
     Pull request are also welcome.

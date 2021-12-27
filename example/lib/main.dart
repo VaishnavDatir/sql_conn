@@ -15,7 +15,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-
   Future<void> connect() async {
     await SqlConn.connect(
         ip: "192.168.167.176",
@@ -27,12 +26,12 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> read(String query) async {
     var res = await SqlConn.readData(query);
-    print(res.toString());
+    debugPrint(res.toString());
   }
 
   Future<void> write(String query) async {
     var res = await SqlConn.writeData(query);
-    print(res.toString());
+    debugPrint(res.toString());
   }
 
   @override
@@ -50,11 +49,15 @@ class _MyAppState extends State<MyApp> {
                 ElevatedButton(
                     onPressed: () => connect(), child: const Text("Connect")),
                 ElevatedButton(
-                    onPressed: () => read("SELECT * FROM IP_List"), child: const Text("Read")),
+                    onPressed: () => read("SELECT * FROM IP_List"),
+                    child: const Text("Read")),
                 ElevatedButton(
-                    onPressed: () => write("DELETE FROM IP_List WHERE LOC='vv1'"), child: const Text("Write")),
+                    onPressed: () =>
+                        write("DELETE FROM IP_List WHERE LOC='vv1'"),
+                    child: const Text("Write")),
                 ElevatedButton(
-                    onPressed: () => SqlConn.disconnect(), child: const Text("Disconnect"))
+                    onPressed: () => SqlConn.disconnect(),
+                    child: const Text("Disconnect"))
               ],
             ),
           )),

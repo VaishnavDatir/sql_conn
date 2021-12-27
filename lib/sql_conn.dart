@@ -8,8 +8,16 @@ class SqlConn {
 
   static bool _isConnected = false;
 
+  /// To check if application is connected with database
   static bool get isConnected => _isConnected;
 
+  /// To connect to the database
+  ///
+  /// The arguments [ip], [port], [databaseName],
+  /// [username], and [password] must not be null.
+  ///
+  /// If [username] or [password] are empty just
+  /// pass the empty string.
   static Future connect({
     required String ip,
     required String port,
@@ -31,6 +39,11 @@ class SqlConn {
     }
   }
 
+  /// To read the data from the database.
+  ///
+  /// The argument [query] must not be null.
+  /// The response is in json list format
+  /// and can be decoded using json.decode().
   static Future readData(String query) async {
     Map<String, dynamic> args = {
       "query": query,
@@ -42,6 +55,11 @@ class SqlConn {
     }
   }
 
+  /// To write the data in the database.
+  ///
+  /// The argument [query] must not be null.
+  /// The response is true if query is executed successfully.
+  /// Else the error is thrown
   static Future writeData(String query) async {
     Map<String, dynamic> args = {
       "query": query,
@@ -53,6 +71,7 @@ class SqlConn {
     }
   }
 
+  /// To disconnect form the database.
   static Future disconnect() async {
     try {
       _isConnected = await _channel.invokeMethod("disconnectDB");
