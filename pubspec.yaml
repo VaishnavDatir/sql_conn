@@ -2,7 +2,7 @@ name: sql_conn
 
 description: Plugin for connecting Flutter Android application to SQL Server. Easily read data from SQL Database. Perform CURD as well as many other operation on database using this plugin.
 
-version: 0.0.2
+version: 0.0.3
 homepage: https://github.com/VaishnavDatir/sql_conn
 
 environment:

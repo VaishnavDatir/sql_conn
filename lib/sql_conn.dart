@@ -18,19 +18,24 @@ class SqlConn {
   ///
   /// If [username] or [password] are empty just
   /// pass the empty string.
+  /// [timeout] The timeout for connecting to the database and for all database operations.
+  /// Accept only int value of seconds
+  /// By default it is 15 seconds
   static Future connect({
     required String ip,
     required String port,
     required String databaseName,
     required String username,
     required String password,
+    int timeout = 15,
   }) async {
     Map<String, dynamic> args = {
       "ip": ip,
       "port": port,
       "databaseName": databaseName,
       "username": username,
-      "password": password
+      "password": password,
+      "timeout":timeout,
     };
     try {
       _isConnected = await _channel.invokeMethod("connectDB", args);
