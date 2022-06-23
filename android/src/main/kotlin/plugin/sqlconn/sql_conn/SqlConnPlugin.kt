@@ -126,30 +126,19 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
                     for (j in colNameList) {
                         lateinit var data: String;
                         if (resultSet.getString(j) != null) {
-                            val string = resultSet.getString(j)
-
-                            var numeric = string.matches("-?\\d+(\\.\\d+)?".toRegex())
-                            var isBoolean =
-                                if (string.toLowerCase() == "true" || string.toLowerCase() == "false") true else false
-                            if (numeric) {
-                                data = string
-                            } else if (isBoolean) {
-                                data = string
-                            } else {
-                                data = "\"$string\""
-                            }
+                            data = resultSet.getString(j)
                         } else {
                             data = "null"
                         }
-                        val jString: String = "\"$j\":$data"
+                        val jString: String = "$data"
                         stringList.add(jString)
                     }
                     val fString: String =
-                        "{" + stringList.toString().replace("[", "").replace("]", "")
-                            .replace("\"null\"", "null") + "}"
+                        stringList.joinToString("#%").replace("[", "").replace("]", "")
+                            .replace("\"null\"", "null")
                     dataList.add(fString)
                 }
-                result.success(dataList.toString())
+                result.success(dataList.joinToString("&$"))
             } else {
                 throw Exception("Database is not connected")
             }
