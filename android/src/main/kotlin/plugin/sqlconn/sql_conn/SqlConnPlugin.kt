@@ -19,7 +19,9 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+/// data type seperator |$&|%#|
+/// data seperator #%
+/// row seperator &$ 
 /** SqlConnPlugin */
 class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -115,11 +117,14 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
                 val colCount: Int =
                     resultSet.getMetaData().getColumnCount()  // <-- To get column count
                 val colNameList = arrayListOf<String>()
+                var colTypeList = arrayListOf<String>()
                 val dataList = arrayListOf<Any>()
 
                 for (i in 1..(colCount)) {
+                    colTypeList.add(resultSet.getMetaData().getColumnTypeName(i).toString())
                     colNameList.add(resultSet.getMetaData().getColumnName(i).toString())
                 }
+            
                 while (resultSet.next()) {
 
                     val stringList = arrayListOf<Any>()
@@ -138,7 +143,13 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
                             .replace("\"null\"", "null")
                     dataList.add(fString)
                 }
-                result.success(dataList.joinToString("&$"))
+                var fResult: String = "";
+                if (dataList.isNotEmpty()) {
+                    fResult += colTypeList.joinToString("|")
+                    fResult += "|$&|%#|";
+                } 
+                fResult += dataList.joinToString("&$")
+                result.success(fResult)
             } else {
                 throw Exception("Database is not connected")
             }
