@@ -138,7 +138,7 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
                             } else {
                                 data = "\"$string\""
                                 // magic line which supposedly escapes double quotes
-                                data = data.replace("\"(?!\\\\)", "\\\"")
+                                data = data.replace("\"", "\\\"")
                             }
                         } else {
                             data = "null"
