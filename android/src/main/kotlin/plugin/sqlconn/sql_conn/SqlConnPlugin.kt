@@ -138,15 +138,13 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
                             } else if (isBoolean) {
                                 data = string
                             } else {
-                                // Set data value using if assignment syntax
+                                // Properly escape double quotes using if assignment
                                 data = if (string.contains("\"")) {
                                     val escapedQuotesString = string.replace("\"", "\\\"")
                                     "\"$escapedQuotesString\""
                                 } else {
                                     "\"$string\""
                                 }
-
-                                // magic line which supposedly escapes double quotes
                             }
                         } else {
                             data = "null"
