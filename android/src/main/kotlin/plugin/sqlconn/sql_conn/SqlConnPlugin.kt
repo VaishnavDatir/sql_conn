@@ -19,6 +19,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.*
 
 /** SqlConnPlugin */
 class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
@@ -124,19 +125,26 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
 
                     val stringList = arrayListOf<Any>()
                     for (j in colNameList) {
-                        lateinit var data: String;
+                        lateinit var data: String
                         if (resultSet.getString(j) != null) {
                             val string = resultSet.getString(j)
 
-                            var numeric = string.matches("-?\\d+(\\.\\d+)?".toRegex())
-                            var isBoolean =
-                                if (string.toLowerCase() == "true" || string.toLowerCase() == "false") true else false
+                            val numeric = string.matches("-?\\d+(\\.\\d+)?".toRegex())
+                            val isBoolean =
+                                string.toLowerCase(Locale.ROOT) == "true" || string.toLowerCase(
+                                    Locale.ROOT) == "false"
                             if (numeric) {
                                 data = string
                             } else if (isBoolean) {
                                 data = string
                             } else {
-                                data = "\"$string\""
+                                // Properly escape double quotes using if assignment
+                                data = if (string.contains("\"")) {
+                                    val escapedQuotesString = string.replace("\"", "\\\"")
+                                    "\"$escapedQuotesString\""
+                                } else {
+                                    "\"$string\""
+                                }
                             }
                         } else {
                             data = "null"
