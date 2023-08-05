@@ -1,15 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'sql_conn_method_channel.dart';
 
 class SqlConn {
-  static const MethodChannel _channel =
-      MethodChannel('plugin.sqlconn.sql_conn/sql_conn');
+  static final MethodChannelSqlConn _channel = MethodChannelSqlConn();
 
   static bool _isConnected = false;
 
   /// To check if application is connected with database
-  static bool get isConnected => _isConnected;
+  static bool? get isConnected => _isConnected;
 
   /// To connect to the database
   ///
@@ -35,10 +34,10 @@ class SqlConn {
       "databaseName": databaseName,
       "username": username,
       "password": password,
-      "timeout":timeout,
+      "timeout": timeout,
     };
     try {
-      _isConnected = await _channel.invokeMethod("connectDB", args);
+      _isConnected = await _channel.connectToDB(args);
     } catch (error) {
       rethrow;
     }
@@ -54,7 +53,7 @@ class SqlConn {
       "query": query,
     };
     try {
-      return await _channel.invokeMethod("readData", args);
+      return await _channel.readDataFromDB(args);
     } catch (error) {
       rethrow;
     }
@@ -70,16 +69,18 @@ class SqlConn {
       "query": query,
     };
     try {
-      return await _channel.invokeMethod("writeData", args);
+      return await _channel.writeDataToDB(args);
     } catch (error) {
       rethrow;
     }
   }
 
   /// To disconnect form the database.
+  ///
+  /// return [true] if successfully disconnected, else [false]
   static Future disconnect() async {
     try {
-      _isConnected = await _channel.invokeMethod("disconnectDB");
+      _isConnected = await _channel.disconnectFromDB();
     } catch (error) {
       rethrow;
     }

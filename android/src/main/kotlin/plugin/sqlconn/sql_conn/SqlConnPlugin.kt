@@ -7,18 +7,18 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import android.os.StrictMode;
+import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.content.Context
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.*
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.SQLException
+import java.sql.Statement
 import java.util.*
 
 /** SqlConnPlugin */
@@ -83,17 +83,17 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
         try {
             val ip: String = call.argument<String>("ip").toString()
             val port: String = call.argument<String>("port").toString()
-            val Classes = "net.sourceforge.jtds.jdbc.Driver"
+            val className = "net.sourceforge.jtds.jdbc.Driver"
             val database = call.argument<String>("databaseName").toString()
             val username = call.argument<String>("username").toString()
             val password = call.argument<String>("password").toString()
             val timeout =  call.argument<Int>("timeout")
             val url = "jdbc:jtds:sqlserver://$ip:$port/$database"
 
-            Class.forName(Classes)
+            Class.forName(className)
             DriverManager.setLoginTimeout(timeout!!.toInt())
             connection = DriverManager.getConnection(url, username, password)
-            result.success(true)
+            result.success(true) // returning true if connected!
         } catch (e: Throwable) {
             result.error("ERROR", e.message.toString(), null)
         } catch (e: ClassNotFoundException) {
@@ -114,48 +114,19 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
                 val resultSet: ResultSet = statement.executeQuery(query)
 
                 val colCount: Int =
-                    resultSet.getMetaData().getColumnCount()  // <-- To get column count
+                    resultSet.metaData.columnCount  // <-- To get column count
                 val colNameList = arrayListOf<String>()
                 val dataList = arrayListOf<Any>()
 
                 for (i in 1..(colCount)) {
-                    colNameList.add(resultSet.getMetaData().getColumnName(i).toString())
+                    colNameList.add(resultSet.metaData.getColumnName(i).toString())
                 }
                 while (resultSet.next()) {
-
-                    val stringList = arrayListOf<Any>()
-                    for (j in colNameList) {
-                        lateinit var data: String
-                        if (resultSet.getString(j) != null) {
-                            val string = resultSet.getString(j)
-
-                            val numeric = string.matches("-?\\d+(\\.\\d+)?".toRegex())
-                            val isBoolean =
-                                string.toLowerCase(Locale.ROOT) == "true" || string.toLowerCase(
-                                    Locale.ROOT) == "false"
-                            if (numeric) {
-                                data = string
-                            } else if (isBoolean) {
-                                data = string
-                            } else {
-                                // Properly escape double quotes using if assignment
-                                data = if (string.contains("\"")) {
-                                    val escapedQuotesString = string.replace("\"", "\\\"")
-                                    "\"$escapedQuotesString\""
-                                } else {
-                                    "\"$string\""
-                                }
-                            }
-                        } else {
-                            data = "null"
-                        }
-                        val jString: String = "\"$j\":$data"
-                        stringList.add(jString)
+                    val dataMap = HashMap<String, Any>()
+                    for (colName in colNameList) {
+                        dataMap[colName] = resultSet.getObject(colName)
                     }
-                    val fString: String =
-                        "{" + stringList.toString().replace("[", "").replace("]", "")
-                            .replace("\"null\"", "null") + "}"
-                    dataList.add(fString)
+                    dataList.add(dataMap)
                 }
                 result.success(dataList.toString())
             } else {
@@ -187,7 +158,7 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
             if (connection != null) {
                 android.util.Log.i(TAG, "onDetachedFromEngine: Closing SQL Connection")
                 connection!!.close()
-                result.success(false)
+                result.success(true) // returning true if connected!
             } else {
                 throw  Exception("Database is not connected")
             }

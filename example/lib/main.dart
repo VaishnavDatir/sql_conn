@@ -41,11 +41,11 @@ class _TestPageState extends State<TestPage> {
         },
       );
       await SqlConn.connect(
-          ip: "192.168.128.176",
+          ip: "192.168.10.12",
           port: "1433",
-          databaseName: "MDCData",
-          username: "AS",
-          password: "112233");
+          databaseName: "ADTest",
+          username: "anil",
+          password: "123456");
       debugPrint("Connected!");
     } catch (e) {
       debugPrint(e.toString());
@@ -79,7 +79,7 @@ class _TestPageState extends State<TestPage> {
                   onPressed: () => connect(context),
                   child: const Text("Connect")),
               ElevatedButton(
-                  onPressed: () => read("SELECT * FROM IP_List"),
+                  onPressed: () => read("SELECT * FROM Barcode_Print"),
                   child: const Text("Read")),
               ElevatedButton(
                   onPressed: () => write("DELETE FROM IP_List WHERE LOC='vv1'"),
@@ -89,8 +89,7 @@ class _TestPageState extends State<TestPage> {
                       "CREATE TABLE Persons (PersonID int, LastName varchar(255), FirstName varchar(255), Address varchar(255),City varchar(255))"),
                   child: const Text("Create Table")),
               ElevatedButton(
-                  onPressed: () => write(
-                      "DROP TABLE Persons"),
+                  onPressed: () => write("DROP TABLE Persons"),
                   child: const Text("Delete Table")),
               ElevatedButton(
                   onPressed: () => SqlConn.disconnect(),
