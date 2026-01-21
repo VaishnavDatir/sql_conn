@@ -25,6 +25,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    namespace 'plugin.sqlconn.sql_conn'
     compileSdkVersion 30
 
     compileOptions {

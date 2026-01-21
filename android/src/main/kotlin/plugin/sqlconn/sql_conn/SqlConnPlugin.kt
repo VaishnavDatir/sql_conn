@@ -87,7 +87,18 @@ class SqlConnPlugin : FlutterPlugin, MethodCallHandler {
             val username = call.argument<String>("username").toString()
             val password = call.argument<String>("password").toString()
             val timeout =  call.argument<Int>("timeout")
-            val url = "jdbc:jtds:sqlserver://$ip:$port/$database"
+            
+            // SSL parametreleri (Azure SQL Server için gerekli)
+            val sslEnabled = call.argument<Boolean>("sslEnabled") ?: true
+            val trustServerCert = call.argument<Boolean>("trustServerCertificate") ?: false
+            
+            val sslParams = if (sslEnabled) {
+                ";ssl=require;encrypt=true;trustServerCertificate=$trustServerCert"
+            } else {
+                ""
+            }
+            
+            val url = "jdbc:jtds:sqlserver://$ip:$port/$database$sslParams"
 
             Class.forName(Classes)
             DriverManager.setLoginTimeout(timeout!!.toInt())

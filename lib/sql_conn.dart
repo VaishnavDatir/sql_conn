@@ -21,6 +21,9 @@ class SqlConn {
   /// [timeout] The timeout for connecting to the database and for all database operations.
   /// Accept only int value of seconds
   /// By default it is 15 seconds
+  /// [sslEnabled] Enable SSL/TLS encryption (required for Azure SQL Server). Default is true.
+  /// [trustServerCertificate] Trust server certificate without validation. 
+  /// Set to true for testing with self-signed certificates, false for production. Default is false.
   static Future connect({
     required String ip,
     required String port,
@@ -28,6 +31,8 @@ class SqlConn {
     required String username,
     required String password,
     int timeout = 15,
+    bool sslEnabled = true,
+    bool trustServerCertificate = false,
   }) async {
     Map<String, dynamic> args = {
       "ip": ip,
@@ -35,7 +40,9 @@ class SqlConn {
       "databaseName": databaseName,
       "username": username,
       "password": password,
-      "timeout":timeout,
+      "timeout": timeout,
+      "sslEnabled": sslEnabled,
+      "trustServerCertificate": trustServerCertificate,
     };
     try {
       _isConnected = await _channel.invokeMethod("connectDB", args);
