@@ -1,61 +1,168 @@
 # sql_conn
 
-A sql_conn is a plugin for connecting Flutter Android application to SQL Server.
+**sql_conn** is a production-ready Flutter plugin that allows **Android applications** to connect directly to SQL databases using JDBC with connection pooling.
 
-This library aims to provide an easy to use interface to SQL Server.
-Easily read data from SQL Database. Perform CURD as well as many other operation on database using this plugin.
+It provides a clean, type-safe, null-safe Dart API powered by **Pigeon**, and a high-performance Android backend using **HikariCP**.
 
-## Platform Support
+This plugin is designed for **LAN / internal network / enterprise / industrial** use-cases where direct database connectivity from a mobile device is required.
 
-| Android | iOS |
-| :-----: | :-: |
-|   ✔️    | ❌️ |
+---
 
-## Usage
+## ✨ Features
 
-Connect to the database
+- Android-only direct SQL connectivity
+- Multi-database support:
+  - Microsoft SQL Server
+  - PostgreSQL
+  - MySQL / MariaDB
+  - Oracle
+  - Custom JDBC URLs
+- Multiple simultaneous database connections
+- Connection pooling (HikariCP)
+- Prepared statements (parameterized queries)
+- Stored procedure execution
+- SQL script / batch execution
+- SSL-enabled connections by default
+- Fully null-safe Dart API
+- Type-safe Flutter ↔ Android bridge using Pigeon
 
+---
+
+## 📱 Platform Support
+
+| Platform | Support |
+|----------|---------|
+| Android  | ✅ Yes |
+| iOS      | 🚧 Under construction |
+| Web      | 💭 Planning |
+| Windows  | 🚫 No |
+| MacOs    | 🚫 No |
+
+
+> Direct database connections from mobile apps should only be used in trusted or internal networks.
+
+---
+
+## 🚀 Installation
+
+Add to `pubspec.yaml`:
+
+```yaml
+dependencies:
+  sql_conn: ^2.0.0
+```
+
+---
+
+## ⚙️ Basic Usage
+### Connect to a database
 ```dart
 await SqlConn.connect(
-        ip: "192.168.167.176",
-        port: "1433",
-        databaseName: "MyDatabase",
-        username: "admin123",
-        password: "Pass@123");
+  connectionId: "mainDB",
+  dbType: DatabaseType.sqlServer,
+  host: "192.168.1.10",
+  port: 1433,
+  database: "MyDatabase",
+  username: "admin",
+  password: "Password@123",
+);
 ```
 
-Execute a query with parameters:
+### Read data
+```dart
+final rows = await SqlConn.read(
+  "mainDB",
+  "SELECT * FROM users WHERE role = ?",
+  params: ["admin"],
+);
 
-To read data from database
+print(rows);
+```
+
+### Write / Update / Delete
 
 ```dart
-var res = await SqlConn.readData("SELECT * FROM tableName");
-    print(res.toString());
-    // results are in list in json format
+final count = await SqlConn.write(
+  "mainDB",
+  "UPDATE users SET active = ? WHERE id = ?",
+  params: [true, 101],
+);
+
+print("Rows affected: $count");
 ```
 
-To edit database (Queries such as Insert, Delete, Create and many more)
-
+### Call Stored Procedure
 ```dart
- var res = await SqlConn.writeData(query);
-    print(res.toString());
-    // returns true is executed successfully
+final result = await SqlConn.callProcedure(
+  "mainDB",
+  "sp_generate_report",
+  params: [2026, "JAN"],
+);
 ```
 
-Disconnect from database
-
+### Execute SQL Script
 ```dart
- SqlConn.disconnect();
+await SqlConn.executeScript(
+  "mainDB",
+  """
+  CREATE TABLE logs(id INT, message VARCHAR(255));
+  CREATE INDEX idx_logs ON logs(id);
+  """,
+);
 ```
 
-To check if application is connected to database
-
+### Disconnect
 ```dart
- print(SqlConn.isConnected);
+await SqlConn.disconnect("mainDB");
 ```
 
-### Bugs/Requests
-    The plugin is still in development and there might be some bugs.
-    If you encounter any problems feel free to open an issue.
-    If you feel the library is missing a feature, please raise a ticket on Github.
-    Pull request are also welcome.
+### 🧩 Multiple Connections
+```dart
+await SqlConn.connect(connectionId: "db1", dbType: DatabaseType.sqlServer, ...);
+await SqlConn.connect(connectionId: "db2", dbType: DatabaseType.postgres, ...);
+
+final a = await SqlConn.read("db1", "SELECT * FROM table1");
+final b = await SqlConn.read("db2", "SELECT * FROM table2");
+```
+
+### 🔧 Custom JDBC URL
+```dart
+await SqlConn.connect(
+  connectionId: "legacy",
+  dbType: DatabaseType.custom,
+  host: "",
+  port: 0,
+  database: "",
+  username: "sysdba",
+  password: "masterkey",
+  customJdbcUrl: "jdbc:firebirdsql://192.168.1.9/employee",
+);
+```
+
+---
+
+## 🧠 State Management
+
+**sql_conn** is a stateless service API.
+You can integrate it with any state manager:
+- Provider
+- Riverpod
+- Bloc
+- GetX
+- Service Locators
+- Connection lifecycle is fully controlled by your app.
+
+---
+
+## ⚡ Performance
+- HikariCP connection pooling
+- Prepared statement reuse
+- Non-blocking platform channel
+- Minimal memory overhead
+
+---
+
+## 🔐 Security
+- SSL enabled by default
+- Prepared statements prevent SQL injection
+- No credential logging
