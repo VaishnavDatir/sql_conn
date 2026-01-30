@@ -1,87 +1,331 @@
-import 'dart:async';
+import 'dart:developer' as dev;
 
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
+import 'src/sql_conn_api.g.dart';
+
+/// Custom exception thrown by sql_conn when a native or connection error occurs.
+class SqlConnException implements Exception {
+  final String message;
+  SqlConnException(this.message);
+
+  @override
+  String toString() => "SqlConnException: $message";
+}
+
+/// SqlConn provides a stateless, type-safe API to connect Flutter Android
+/// applications directly to SQL databases using JDBC.
+///
+/// This plugin is designed for **Android-only**, internal or LAN-based
+/// enterprise / industrial applications where direct database access
+/// from a mobile device is required.
+///
+/// Supported databases:
+/// - Microsoft SQL Server
+/// - PostgreSQL
+/// - MySQL / MariaDB
+/// - Oracle
+/// - Any custom JDBC-supported database
+///
+/// All operations are asynchronous, non-blocking, and executed using
+/// connection pooling for high performance.
+///
+/// Example:
+/// ```dart
+/// await SqlConn.connect(
+///   connectionId: "mainDB",
+///   host: "192.168.1.10",
+///   port: 1433,
+///   database: "FactoryDB",
+///   username: "admin",
+///   password: "Pass@123",
+/// );
+///
+/// final rows = await SqlConn.read(
+///   "mainDB",
+///   "SELECT * FROM users WHERE role = ?",
+///   params: ["admin"],
+/// );
+///
+/// print(rows);
+/// await SqlConn.disconnect("mainDB");
+/// ```
 class SqlConn {
-  static const MethodChannel _channel =
-      MethodChannel('plugin.sqlconn.sql_conn/sql_conn');
+  static final SqlConnHostApi _api = SqlConnHostApi();
 
-  static bool _isConnected = false;
+  /// Centralized debug logger that only runs in Debug mode
+  static void _log(String message,
+      {String? connectionId, Duration? elapsed, int? rows}) {
+    if (kDebugMode) {
+      final String timeStr =
+          elapsed != null ? " | Time: ${elapsed.inMilliseconds}ms" : "";
+      final String rowStr = rows != null ? " | Rows: $rows" : "";
+      final String connStr = connectionId != null ? " [$connectionId]" : "";
 
-  /// To check if application is connected with database
-  static bool get isConnected => _isConnected;
+      // Using dev.log makes it searchable in the "Logging" tab of DevTools
+      dev.log(
+        "SQL_CONN$connStr: $message$timeStr$rowStr",
+        name: 'sql_conn',
+      );
+    }
+  }
 
-  /// To connect to the database
+  /// Establishes a connection to a database and registers it
+  /// internally using the provided [connectionId].
   ///
-  /// The arguments [ip], [port], [databaseName],
-  /// [username], and [password] must not be null.
+  /// Multiple databases can be connected simultaneously by using
+  /// different connectionId values.
   ///
-  /// If [username] or [password] are empty just
-  /// pass the empty string.
-  /// [timeout] The timeout for connecting to the database and for all database operations.
-  /// Accept only int value of seconds
-  /// By default it is 15 seconds
-  static Future connect({
-    required String ip,
-    required String port,
-    required String databaseName,
+  /// Parameters:
+  /// - [connectionId]: Unique identifier for this connection instance.
+  /// - [host]: Database server host or IP address.
+  /// - [port]: Database server port.
+  /// - [database]: Database name or schema.
+  /// - [username]: Database username.
+  /// - [password]: Database password.
+  ///
+  /// Returns true if connection succeeds.
+  ///
+  /// Throws [SqlConnException] if connection fails.
+  static Future<bool> connect({
+    required String connectionId,
+    required String host,
+    required int port,
+    required String database,
     required String username,
     required String password,
-    int timeout = 15,
+    bool ssl = true,
+    bool trustServerCertificate = true,
+    int timeout = 5,
+    String? customJdbcUrl,
   }) async {
-    Map<String, dynamic> args = {
-      "ip": ip,
-      "port": port,
-      "databaseName": databaseName,
-      "username": username,
-      "password": password,
-      "timeout":timeout,
-    };
     try {
-      _isConnected = await _channel.invokeMethod("connectDB", args);
-    } catch (error) {
-      rethrow;
+      return await _api.connect(SqlConnectionConfig(
+        connectionId: connectionId,
+        host: host,
+        port: port,
+        database: database,
+        username: username,
+        password: password,
+      ));
+    } catch (e) {
+      throw SqlConnException(e.toString());
     }
   }
 
-  /// To read the data from the database.
+  /// Closes and removes a previously opened connection.
   ///
-  /// The argument [query] must not be null.
-  /// The response is in json list format
-  /// and can be decoded using json.decode().
-  static Future readData(String query) async {
-    Map<String, dynamic> args = {
-      "query": query,
-    };
-    try {
-      return await _channel.invokeMethod("readData", args);
-    } catch (error) {
-      rethrow;
-    }
-  }
-
-  /// To write the data in the database.
+  /// After disconnecting, the [connectionId] becomes invalid
+  /// and must be reconnected before further queries.
   ///
-  /// The argument [query] must not be null.
-  /// The response is true if query is executed successfully.
-  /// Else the error is thrown
-  static Future writeData(String query) async {
-    Map<String, dynamic> args = {
-      "query": query,
-    };
+  /// Returns true if successfully disconnected.
+  ///
+  /// Throws [SqlConnException] if disconnect fails.
+  static Future<bool> disconnect(String connectionId) async {
     try {
-      return await _channel.invokeMethod("writeData", args);
-    } catch (error) {
-      rethrow;
+      return await _api.disconnect(connectionId);
+    } catch (e) {
+      throw SqlConnException(e.toString());
     }
   }
 
-  /// To disconnect form the database.
-  static Future disconnect() async {
+  /// Executes a SELECT query and returns the result as a
+  /// List of Map<String, Object?>.
+  ///
+  /// Each row is represented as a Map where:
+  /// - Key = column name
+  /// - Value = column value
+  ///
+  /// Supports parameterized queries using '?' placeholders.
+  ///
+  /// Example:
+  /// ```dart
+  /// final rows = await SqlConn.read(
+  ///   "mainDB",
+  ///   "SELECT * FROM users WHERE id = ? AND active = ?",
+  ///   params: [101, true],
+  /// );
+  /// ```
+  ///
+  /// Throws [SqlConnException] if query execution fails.
+  static Future<List<Map<String, Object?>>> read(
+    String connectionId,
+    String query, {
+    List<Object?>? params,
+  }) async {
+    final sw = Stopwatch()..start(); 
     try {
-      _isConnected = await _channel.invokeMethod("disconnectDB");
-    } catch (error) {
-      rethrow;
+      final res = await _api.read(connectionId, query, params);
+
+      final results = res.map((row) {
+        final clean = <String, Object?>{};
+        row.forEach((k, v) => clean[k.toString()] = v);
+        return clean;
+      }).toList();
+
+      sw.stop();
+
+      _log("READ SUCCESS",
+          connectionId: connectionId,
+          elapsed: sw.elapsed,
+          rows: results.length);
+
+      return results;
+    } catch (e) {
+      sw.stop();
+      _log("READ ERROR: $e", connectionId: connectionId, elapsed: sw.elapsed);
+      throw SqlConnException(e.toString());
     }
+  }
+
+  /// Executes INSERT, UPDATE, DELETE, or DDL queries.
+  ///
+  /// Returns the number of affected rows.
+  ///
+  /// Example:
+  /// ```dart
+  /// final count = await SqlConn.write(
+  ///   "mainDB",
+  ///   "UPDATE users SET active = ? WHERE id = ?",
+  ///   params: [true, 101],
+  /// );
+  /// print("Rows updated: $count");
+  /// ```
+  ///
+  /// Throws [SqlConnException] if execution fails.
+  static Future<int> write(
+    String connectionId,
+    String query, {
+    List<Object?>? params,
+  }) async {
+    final sw = Stopwatch()..start();
+    try {
+      final count = await _api.write(connectionId, query, params);
+      sw.stop();
+
+      _log("WRITE SUCCESS",
+          connectionId: connectionId, elapsed: sw.elapsed, rows: count.toInt());
+
+      return count.toInt();
+    } catch (e) {
+      sw.stop();
+      _log("WRITE ERROR: $e", connectionId: connectionId, elapsed: sw.elapsed);
+      throw SqlConnException(e.toString());
+    }
+  }
+
+  /// Executes a stored procedure and returns the result set.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await SqlConn.callProcedure(
+  ///   "mainDB",
+  ///   "sp_generate_report",
+  ///   params: [2026, "JAN"],
+  /// );
+  /// ```
+  ///
+  /// Throws [SqlConnException] if execution fails.
+  static Future<List<Map<String, Object?>>> callProcedure(
+    String connectionId,
+    String procedureName, {
+    List<Object?>? params,
+  }) async {
+    final sw = Stopwatch()..start();
+    try {
+      final res = await _api.callProcedure(connectionId, procedureName, params);
+
+      final results = res.map<Map<String, Object?>>((row) {
+        final map = <String, Object?>{};
+        row.forEach((key, value) {
+          map[key.toString()] = value;
+        });
+        return map;
+      }).toList();
+
+      sw.stop();
+
+      _log("Call Procedure SUCCESS",
+          connectionId: connectionId,
+          elapsed: sw.elapsed,
+          rows: results.length);
+
+      return results;
+    } catch (e) {
+      sw.stop();
+      _log("Call Procedure ERROR: $e",
+          connectionId: connectionId, elapsed: sw.elapsed);
+      throw SqlConnException(e.toString());
+    }
+  }
+
+  /// Executes a multi-statement SQL script.
+  ///
+  /// Useful for:
+  /// - Creating tables
+  /// - Creating triggers
+  /// - Schema migrations
+  /// - Batch execution
+  ///
+  /// Example:
+  /// ```dart
+  /// await SqlConn.executeScript(
+  ///   "mainDB",
+  ///   """
+  ///   CREATE TABLE logs(id INT, message VARCHAR(255));
+  ///   CREATE INDEX idx_logs ON logs(id);
+  ///   """,
+  /// );
+  /// ```
+  ///
+  /// Returns true if script executes successfully.
+  ///
+  /// Throws [SqlConnException] if execution fails.
+  static Future<bool> executeScript(
+    String connectionId,
+    String script,
+  ) async {
+    try {
+      return await _api.executeScript(connectionId, script);
+    } catch (e) {
+      throw SqlConnException(e.toString());
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Convenience helper for the most common use-case (SQL Server)
+  // ---------------------------------------------------------------------------
+
+  /// Quick helper to connect to Microsoft SQL Server 
+  ///
+  /// Example:
+  /// ```dart
+  /// await SqlConn.connectSqlServer(
+  ///   connectionId: "mainDB",
+  ///   host: "192.168.1.10",
+  ///   port: 1433,
+  ///   database: "FactoryDB",
+  ///   username: "admin",
+  ///   password: "Pass@123",
+  /// );
+  /// ```
+  static Future<bool> connectSqlServer({
+    required String connectionId,
+    required String host,
+    required int port,
+    required String database,
+    required String username,
+    required String password,
+    bool ssl = true,
+  }) {
+    return connect(
+      connectionId: connectionId,
+      host: host,
+      port: port,
+      database: database,
+      username: username,
+      password: password,
+      ssl: ssl,
+    );
   }
 }
