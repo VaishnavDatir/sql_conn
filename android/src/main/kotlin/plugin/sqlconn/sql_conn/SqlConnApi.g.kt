@@ -78,67 +78,35 @@ class FlutterError (
   val details: Any? = null
 ) : Throwable()
 
-enum class DatabaseType(val raw: Int) {
-  SQL_SERVER(0),
-  POSTGRES(1),
-  MYSQL(2),
-  ORACLE(3),
-  CUSTOM(4);
-
-  companion object {
-    fun ofRaw(raw: Int): DatabaseType? {
-      return values().firstOrNull { it.raw == raw }
-    }
-  }
-}
-
 /** Generated class from Pigeon that represents data sent in messages. */
 data class SqlConnectionConfig (
   val connectionId: String,
-  val dbType: DatabaseType,
   val host: String,
   val port: Long,
   val database: String,
   val username: String,
-  val password: String,
-  val ssl: Boolean,
-  val trustServerCertificate: Boolean,
-  val maxPoolSize: Long? = null,
-  val connectionTimeoutMs: Long? = null,
-  val customJdbcUrl: String? = null
+  val password: String
 )
  {
   companion object {
     fun fromList(pigeonVar_list: List<Any?>): SqlConnectionConfig {
       val connectionId = pigeonVar_list[0] as String
-      val dbType = pigeonVar_list[1] as DatabaseType
-      val host = pigeonVar_list[2] as String
-      val port = pigeonVar_list[3] as Long
-      val database = pigeonVar_list[4] as String
-      val username = pigeonVar_list[5] as String
-      val password = pigeonVar_list[6] as String
-      val ssl = pigeonVar_list[7] as Boolean
-      val trustServerCertificate = pigeonVar_list[8] as Boolean
-      val maxPoolSize = pigeonVar_list[9] as Long?
-      val connectionTimeoutMs = pigeonVar_list[10] as Long?
-      val customJdbcUrl = pigeonVar_list[11] as String?
-      return SqlConnectionConfig(connectionId, dbType, host, port, database, username, password, ssl, trustServerCertificate, maxPoolSize, connectionTimeoutMs, customJdbcUrl)
+      val host = pigeonVar_list[1] as String
+      val port = pigeonVar_list[2] as Long
+      val database = pigeonVar_list[3] as String
+      val username = pigeonVar_list[4] as String
+      val password = pigeonVar_list[5] as String
+      return SqlConnectionConfig(connectionId, host, port, database, username, password)
     }
   }
   fun toList(): List<Any?> {
     return listOf(
       connectionId,
-      dbType,
       host,
       port,
       database,
       username,
       password,
-      ssl,
-      trustServerCertificate,
-      maxPoolSize,
-      connectionTimeoutMs,
-      customJdbcUrl,
     )
   }
   override fun equals(other: Any?): Boolean {
@@ -156,11 +124,6 @@ private open class SqlConnApiPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
       129.toByte() -> {
-        return (readValue(buffer) as Long?)?.let {
-          DatabaseType.ofRaw(it.toInt())
-        }
-      }
-      130.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           SqlConnectionConfig.fromList(it)
         }
@@ -170,12 +133,8 @@ private open class SqlConnApiPigeonCodec : StandardMessageCodec() {
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
     when (value) {
-      is DatabaseType -> {
-        stream.write(129)
-        writeValue(stream, value.raw.toLong())
-      }
       is SqlConnectionConfig -> {
-        stream.write(130)
+        stream.write(129)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)

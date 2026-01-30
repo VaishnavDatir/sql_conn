@@ -15,37 +15,26 @@ This release is a full modernization of sql_conn, rebuilt for production-grade u
 
 ### Added
 - Pigeon-based type-safe Flutter ↔ Android communication
-- Multi-database support:
-  - Microsoft SQL Server
-  - PostgreSQL
-  - MySQL / MariaDB
-  - Oracle
-  - Custom JDBC URLs
 - Multi-connection support via `connectionId`
 - Prepared statements with parameterized queries
 - Stored procedure execution support
 - SQL script / batch execution support
-- Connection pooling using HikariCP
-- SSL support enabled by default
 - Null-safe Dart API (Dart 3 / Flutter 3)
 - Android-only lightweight example app
 - Modern Android toolchain (AGP 8+, Kotlin 1.9, Java 17 target)
 
 ### Changed
 - Migrated from MethodChannel to Pigeon
-- Replaced deprecated jTDS driver with official database drivers
 - Complete rewrite of Android plugin architecture
 - Simplified stateless Flutter API design
 - Updated build system and Gradle configuration
 
 ### Removed
 - Legacy MethodChannel implementation
-- Deprecated jTDS SQL Server driver
 - Old Android threading and StrictMode hacks
 - Manual JSON string construction logic
 
 ### Security
-- Default SSL-enabled database connections
 - Prepared statements to prevent SQL injection
 - No credential logging
 

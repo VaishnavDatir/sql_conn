@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sql_conn/sql_conn.dart';
-import 'package:sql_conn/src/sql_conn_api.g.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,7 +53,6 @@ class _TestPageState extends State<TestPage> {
     try {
       await SqlConn.connect(
         connectionId: connectionId,
-        dbType: DatabaseType.sqlServer,
         host: "192.168.29.46", // <-- change
         port: 1433,
         database: "FLUTTER_TEST_DEV", // <-- change

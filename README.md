@@ -1,8 +1,8 @@
 # sql_conn
 
-**sql_conn** is a production-ready Flutter plugin that allows **Android applications** to connect directly to SQL databases using JDBC with connection pooling.
+**sql_conn** is a production-ready Flutter plugin that allows **Android applications** to connect directly to SQL SERVER databases using JDBC.
 
-It provides a clean, type-safe, null-safe Dart API powered by **Pigeon**, and a high-performance Android backend using **HikariCP**.
+It provides a clean, type-safe, null-safe Dart API powered by **Pigeon**, and a high-performance Android backend.
 
 This plugin is designed for **LAN / internal network / enterprise / industrial** use-cases where direct database connectivity from a mobile device is required.
 
@@ -11,18 +11,11 @@ This plugin is designed for **LAN / internal network / enterprise / industrial**
 ## ✨ Features
 
 - Android-only direct SQL connectivity
-- Multi-database support:
+- Database support:
   - Microsoft SQL Server
-  - PostgreSQL
-  - MySQL / MariaDB
-  - Oracle
-  - Custom JDBC URLs
-- Multiple simultaneous database connections
-- Connection pooling (HikariCP)
 - Prepared statements (parameterized queries)
 - Stored procedure execution
 - SQL script / batch execution
-- SSL-enabled connections by default
 - Fully null-safe Dart API
 - Type-safe Flutter ↔ Android bridge using Pigeon
 
@@ -59,7 +52,6 @@ dependencies:
 ```dart
 await SqlConn.connect(
   connectionId: "mainDB",
-  dbType: DatabaseType.sqlServer,
   host: "192.168.1.10",
   port: 1433,
   database: "MyDatabase",
@@ -129,7 +121,6 @@ final b = await SqlConn.read("db2", "SELECT * FROM table2");
 ```dart
 await SqlConn.connect(
   connectionId: "legacy",
-  dbType: DatabaseType.custom,
   host: "",
   port: 0,
   database: "",
@@ -155,7 +146,6 @@ You can integrate it with any state manager:
 ---
 
 ## ⚡ Performance
-- HikariCP connection pooling
 - Prepared statement reuse
 - Non-blocking platform channel
 - Minimal memory overhead
@@ -163,6 +153,5 @@ You can integrate it with any state manager:
 ---
 
 ## 🔐 Security
-- SSL enabled by default
 - Prepared statements prevent SQL injection
 - No credential logging

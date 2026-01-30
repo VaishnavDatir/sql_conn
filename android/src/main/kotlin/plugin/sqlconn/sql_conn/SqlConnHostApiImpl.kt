@@ -136,27 +136,7 @@ class SqlConnHostApiImpl : SqlConnHostApi {
     }
 
     private fun buildJdbcUrl(cfg: SqlConnectionConfig): String {
-    val url = when (cfg.dbType) {
-        DatabaseType.SQL_SERVER ->
-            "jdbc:jtds:sqlserver://${cfg.host}:${cfg.port}/${cfg.database}"
-
-        DatabaseType.POSTGRES ->
-            "jdbc:postgresql://${cfg.host}:${cfg.port}/${cfg.database}?ssl=${cfg.ssl}"
-
-        DatabaseType.MYSQL ->
-            "jdbc:mysql://${cfg.host}:${cfg.port}/${cfg.database}?useSSL=${cfg.ssl}"
-
-        DatabaseType.ORACLE ->
-            "jdbc:oracle:thin:@${cfg.host}:${cfg.port}/${cfg.database}"
-
-        DatabaseType.CUSTOM ->
-            cfg.customJdbcUrl ?: throw Exception("Custom JDBC URL required")
-    }
-
-    // Handle optional parameters safely (Converting Pigeon Long? to Kotlin Int)
-    val timeout = cfg.connectionTimeoutMs?.toInt() ?: 5000
-    val poolSize = cfg.maxPoolSize?.toInt() ?: 3
-
+    val url = "jdbc:jtds:sqlserver://${cfg.host}:${cfg.port}/${cfg.database}"
     return url
 }
 

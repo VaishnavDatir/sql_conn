@@ -29,33 +29,17 @@ bool _deepEquals(Object? a, Object? b) {
 }
 
 
-enum DatabaseType {
-  sqlServer,
-  postgres,
-  mysql,
-  oracle,
-  custom,
-}
-
 class SqlConnectionConfig {
   SqlConnectionConfig({
     required this.connectionId,
-    required this.dbType,
     required this.host,
     required this.port,
     required this.database,
     required this.username,
     required this.password,
-    required this.ssl,
-    required this.trustServerCertificate,
-    this.maxPoolSize,
-    this.connectionTimeoutMs,
-    this.customJdbcUrl,
   });
 
   String connectionId;
-
-  DatabaseType dbType;
 
   String host;
 
@@ -67,30 +51,14 @@ class SqlConnectionConfig {
 
   String password;
 
-  bool ssl;
-
-  bool trustServerCertificate;
-
-  int? maxPoolSize;
-
-  int? connectionTimeoutMs;
-
-  String? customJdbcUrl;
-
   List<Object?> _toList() {
     return <Object?>[
       connectionId,
-      dbType,
       host,
       port,
       database,
       username,
       password,
-      ssl,
-      trustServerCertificate,
-      maxPoolSize,
-      connectionTimeoutMs,
-      customJdbcUrl,
     ];
   }
 
@@ -101,17 +69,11 @@ class SqlConnectionConfig {
     result as List<Object?>;
     return SqlConnectionConfig(
       connectionId: result[0]! as String,
-      dbType: result[1]! as DatabaseType,
-      host: result[2]! as String,
-      port: result[3]! as int,
-      database: result[4]! as String,
-      username: result[5]! as String,
-      password: result[6]! as String,
-      ssl: result[7]! as bool,
-      trustServerCertificate: result[8]! as bool,
-      maxPoolSize: result[9] as int?,
-      connectionTimeoutMs: result[10] as int?,
-      customJdbcUrl: result[11] as String?,
+      host: result[1]! as String,
+      port: result[2]! as int,
+      database: result[3]! as String,
+      username: result[4]! as String,
+      password: result[5]! as String,
     );
   }
 
@@ -141,11 +103,8 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is DatabaseType) {
-      buffer.putUint8(129);
-      writeValue(buffer, value.index);
     }    else if (value is SqlConnectionConfig) {
-      buffer.putUint8(130);
+      buffer.putUint8(129);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -156,9 +115,6 @@ class _PigeonCodec extends StandardMessageCodec {
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
       case 129: 
-        final value = readValue(buffer) as int?;
-        return value == null ? null : DatabaseType.values[value];
-      case 130: 
         return SqlConnectionConfig.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);

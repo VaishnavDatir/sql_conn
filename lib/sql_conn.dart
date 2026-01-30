@@ -34,7 +34,6 @@ class SqlConnException implements Exception {
 /// ```dart
 /// await SqlConn.connect(
 ///   connectionId: "mainDB",
-///   dbType: DatabaseType.sqlServer,
 ///   host: "192.168.1.10",
 ///   port: 1433,
 ///   database: "FactoryDB",
@@ -79,22 +78,17 @@ class SqlConn {
   ///
   /// Parameters:
   /// - [connectionId]: Unique identifier for this connection instance.
-  /// - [dbType]: Type of database engine to connect to.
   /// - [host]: Database server host or IP address.
   /// - [port]: Database server port.
   /// - [database]: Database name or schema.
   /// - [username]: Database username.
   /// - [password]: Database password.
-  /// - [ssl]: Enables SSL encryption (default: true).
-  /// - [trustServerCertificate]: Enables self-signed certificates (default: true)
-  /// - [customJdbcUrl]: Required only when dbType = DatabaseType.custom.
   ///
   /// Returns true if connection succeeds.
   ///
   /// Throws [SqlConnException] if connection fails.
   static Future<bool> connect({
     required String connectionId,
-    required DatabaseType dbType,
     required String host,
     required int port,
     required String database,
@@ -108,15 +102,11 @@ class SqlConn {
     try {
       return await _api.connect(SqlConnectionConfig(
         connectionId: connectionId,
-        dbType: dbType,
         host: host,
         port: port,
         database: database,
         username: username,
         password: password,
-        ssl: ssl,
-        trustServerCertificate: trustServerCertificate,
-        customJdbcUrl: customJdbcUrl,
       ));
     } catch (e) {
       throw SqlConnException(e.toString());
@@ -306,7 +296,7 @@ class SqlConn {
   // Convenience helper for the most common use-case (SQL Server)
   // ---------------------------------------------------------------------------
 
-  /// Quick helper to connect to Microsoft SQL Server without specifying dbType.
+  /// Quick helper to connect to Microsoft SQL Server 
   ///
   /// Example:
   /// ```dart
@@ -330,7 +320,6 @@ class SqlConn {
   }) {
     return connect(
       connectionId: connectionId,
-      dbType: DatabaseType.sqlServer,
       host: host,
       port: port,
       database: database,

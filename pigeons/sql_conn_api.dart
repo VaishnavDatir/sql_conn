@@ -1,10 +1,8 @@
 import 'package:pigeon/pigeon.dart';
 
-enum DatabaseType { sqlServer, postgres, mysql, oracle, custom }
 
 class SqlConnectionConfig {
   String connectionId;
-  DatabaseType dbType;
 
   String host;
   int port;
@@ -13,27 +11,14 @@ class SqlConnectionConfig {
   String username;
   String password;
 
-  bool ssl;
-  bool trustServerCertificate;
-
-  int? maxPoolSize;
-  int? connectionTimeoutMs;
-
-  String? customJdbcUrl;
 
   SqlConnectionConfig({
     required this.connectionId,
-    required this.dbType,
     required this.host,
     required this.port,
     required this.database,
     required this.username,
     required this.password,
-    this.ssl = true,
-    this.trustServerCertificate = true,
-    this.maxPoolSize = 3,
-    this.connectionTimeoutMs = 5000,
-    this.customJdbcUrl,
   });
 }
 
